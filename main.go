@@ -10,19 +10,24 @@ import (
 
 var (
 	version       = "dev"
-	flagStartPath = flag.String("path", "./", "start path")
+	flagStartPath = flag.String("path", "", "start path")
 	flagTime      = flag.Int("time", 24, "time in hours")
 	flagMinSize   = flag.Int("min", 100, "min size in MB")
-	flagCSV       = flag.String("csv", "", "output in csv format")
+	flagCSV       = flag.String("csv", "", "output in csv format (optional)")
 	csvFile       *os.File
 )
 
 func init() {
 	flag.Parse()
+	if *flagStartPath == "" {
+		fmt.Fprintf(os.Stderr, "TDU (Time based Disk Usage) version: %s\n\n", version)
+		flag.Usage()
+		os.Exit(1)
+	}
 }
 
 func main() {
-	fmt.Fprintf(os.Stderr, "TDU version: %s\n", version)
+	fmt.Fprintf(os.Stderr, "TDU (Time based Disk Usage) version: %s\n\n", version)
 	fmt.Fprintf(os.Stderr, "Modified before: %d\nMin increment size: %d\nStart path: %s\n", *flagTime, *flagMinSize, *flagStartPath)
 
 	if *flagCSV != "" {
