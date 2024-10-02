@@ -6,29 +6,34 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"github.com/spetr/tdu/units"
 )
 
 var (
-	version       = "dev"
-	flagStartPath = flag.String("path", "", "start path")
-	flagTime      = flag.Int("time", 24, "time in hours")
-	flagMinSize   = flag.Int("min", 100, "min size in MB")
-	flagCSV       = flag.String("csv", "", "output in csv format (optional)")
-	csvFile       *os.File
+	version = "dev"
+
+	flagStartPath     = flag.String("path", "", "start path for walking")
+	flagFTime         = flag.Duration("ftime", time.Hour*24, "from time in hours")
+	flagTTime         = flag.Duration("ttime", time.Hour*0, "to time in hours")
+	flagChangeDirSize = flag.String("csize", "100MB", "size of changes in one directory")
+	flagCSV           = flag.String("csv", "", "output in csv format (optional)")
+
+	confStartPath     = ""
+	confChangeDirSize = int64(0)
+	confTimeAfter     time.Time
+	confTimeBefore    time.Time
+	csvFile           *os.File
 )
 
-func init() {
-	flag.Parse()
-	if *flagStartPath == "" {
-		fmt.Fprintf(os.Stderr, "TDU (Time based Disk Usage) version: %s\n\n", version)
-		flag.Usage()
-		os.Exit(1)
-	}
-}
-
 func main() {
-	fmt.Fprintf(os.Stderr, "TDU (Time based Disk Usage) version: %s\n\n", version)
-	fmt.Fprintf(os.Stderr, "Modified before: %d\nMin increment size: %d\nStart path: %s\n", *flagTime, *flagMinSize, *flagStartPath)
+	fmt.Fprintf(os.Stderr, "TDU (Time based Disk Usage) version: %s\n", version)
+	fmt.Fprint(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Start path: %s\n", *flagStartPath)
+	fmt.Fprintf(os.Stderr, "Min directory change size: %s\n", units.DataSizeHuman(confChangeDirSize, 2))
+	fmt.Fprintf(os.Stderr, "Count only files created/modified after: %s\n", confTimeAfter.Format(time.RFC3339))
+	fmt.Fprintf(os.Stderr, "Count only files created/modified before: %s\n", confTimeBefore.Format(time.RFC3339))
+	fmt.Fprint(os.Stderr, "\n")
 
 	if *flagCSV != "" {
 		fmt.Fprintf(os.Stderr, "Output in CSV format: %s\n", *flagCSV)
@@ -67,18 +72,18 @@ func processDirectory(currentPath string) {
 				fmt.Fprintf(os.Stderr, "Error reading file %s: %s\n", items[i].Name(), err)
 				continue
 			}
-			if itemInfo.ModTime().Add(time.Hour * time.Duration(*flagTime)).After((time.Now())) {
+			if itemInfo.ModTime().After(confTimeAfter) && itemInfo.ModTime().Before(confTimeBefore) {
 				sizeSum += itemInfo.Size()
 			}
 		}
 	}
 
 	// Report if sizeSum is greater than min size
-	if sizeSum > int64(*flagMinSize)*1024*1024 {
-		fmt.Printf("%s: %d MB\n", currentPath, sizeSum/1024/1024)
+	if sizeSum > confChangeDirSize {
+		fmt.Printf("%s %s\n", currentPath, units.DataSizeHuman(sizeSum, 1))
 		// Write to CSV file
 		if csvFile != nil {
-			fmt.Fprintf(csvFile, "%s,%d\n", currentPath, sizeSum/1024/1024)
+			fmt.Fprintf(csvFile, "%s,%d\n", currentPath, sizeSum)
 		}
 	}
 
