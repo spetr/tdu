@@ -1,3 +1,4 @@
+[![Go](https://github.com/spetr/tdu/actions/workflows/go.yml/badge.svg)](https://github.com/spetr/tdu/actions/workflows/go.yml)
 [![License](https://img.shields.io/github/license/spetr/tdu)](https://github.com/spetr/tdu/blob/main/LICENSE)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/spetr/tdu?label=latest%20release)](https://github.com/spetr/tdu/releases/latest)
 
