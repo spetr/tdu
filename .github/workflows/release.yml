@@ -1,8 +1,9 @@
 name: Build Release
 
 on:
-  release:
-    types: [prereleased]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+'
 
 permissions:
   contents: write
@@ -54,8 +55,13 @@ jobs:
         zip ${ARCHIVE} tdu.exe
         echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
+    - name: Release binary
+      uses: softprops/action-gh-release@v2
       with:
-        name: ${{ env.ARCHIVE }}
-        path: ${{ env.ARCHIVE }}
+        files: ${{ env.ARCHIVE }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        release_name: v${{ env.VERSION }}
+        body: |
+          Release of version ${{ env.VERSION }}
+        draft: false
+        prerelease: true
