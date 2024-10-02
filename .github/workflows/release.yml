@@ -1,8 +1,9 @@
 name: Build Release
 
 on:
-  release:
-    types: [prereleased]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+' # Push events to matching v1.2 tags
 
 permissions:
   contents: write
@@ -15,30 +16,29 @@ jobs:
   release-matrics:
     name: Release binary
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         goos: [linux, freebsd, windows, darwin]
         goarch: [amd64, arm64]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
       with:
-        go-version: 1.23
+        go-version: 'stable'
+    - run: go version
 
     - name: Set version
-      run: echo ::set-env name=VERSION::$(git describe --tags --abbrev=0)
+      run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
     - name: Build
-      run: go build -a -trimpath -o tdu-${{ matrix.goos }}-${{ matrix.goarch }} -ldflags "-X main.version=${{ env.VERSION }}"
+      run: go build -a -trimpath -o tdu-${{ matrix.goos }}-${{ matrix.goarch }} -ldflags "-X main.gitTag=${{ env.VERSION }}" .
 
     - name: Archive
-      run: tar -czf tdu-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}.tar.gz tdu-${{ matrix.goos }}-${{ matrix.goarch }}
+      run: tar -czf tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.tar.gz tdu-${{ matrix.goos }}-${{ matrix.goarch }}
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: tdu-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}.tar.gz
+        name: tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.tar.gz
