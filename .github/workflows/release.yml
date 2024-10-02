@@ -43,14 +43,14 @@ jobs:
     - name: Create unix tarball
       if: matrix.goos != 'windows'
       run: |
-        ARCHIVE=tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.tar.gz"
+        ARCHIVE="tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.tar.gz"
         tar -czf ${ARCHIVE} tdu
         echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
 
     - name: Create windows zip
       if: matrix.goos == 'windows'
       run: |
-        ARCHIVE=tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.zip"
+        ARCHIVE="tdu-${{ matrix.goos }}-${{ matrix.goarch }}-v${{ env.VERSION }}.zip"
         zip ${ARCHIVE} tdu.exe
         echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
 
