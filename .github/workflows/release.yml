@@ -39,6 +39,6 @@ jobs:
       run: tar -czf tdu-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}.tar.gz tdu-${{ matrix.goos }}-${{ matrix.goarch }}
 
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: tdu-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}.tar.gz
