@@ -11,7 +11,7 @@ permissions:
 
 env:
   VERSION: unset
-  ARCHIVE: 
+  ARCHIVE:
 
 jobs:
   release-matrics:
@@ -24,22 +24,24 @@ jobs:
         goarch: [amd64, arm64]
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
       with:
         go-version: 'stable'
-    - run: go version
 
     - name: Set version
       run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
 
     - name: Build unix binary
       if: matrix.goos != 'windows'
-      run: go build -a -trimpath -o tdu -ldflags "-X main.gitTag=${{ env.VERSION }}" .
+      run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -a -trimpath -o tdu -ldflags "-s -w -X main.gitTag=${{ env.VERSION }}" .
 
     - name: Build windows binary
       if: matrix.goos == 'windows'
-      run: go build -a -trimpath -o tdu.exe -ldflags "-X main.gitTag=${{ env.VERSION }}" .
+      run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -a -trimpath -o tdu.exe -ldflags "-s -w -X main.gitTag=${{ env.VERSION }}" .
 
     - name: Create unix tarball
       if: matrix.goos != 'windows'
@@ -60,7 +62,7 @@ jobs:
       with:
         files: ${{ env.ARCHIVE }}
         token: ${{ secrets.GITHUB_TOKEN }}
-        release_name: v${{ env.VERSION }}
+        name: TDU (Time based Disk Usage) ${{ env.VERSION }}
         body: |
           Release of version ${{ env.VERSION }}
         draft: false
